@@ -41,7 +41,7 @@ async def on_message(self, message):
 '''Função demostrar os status'''
 @bot.event
 async def on_ready():
-    activity = discord.Game(name="VAI TOMA NO CU LEANDRO", type=3)
+    activity = discord.Game(name="Desista dos seus sonhos!", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
     print(f'{bot.user} se conectou!')
 
@@ -55,6 +55,11 @@ async def frases(ctx):
                    'mimm cago nas kalssah'
     ]
     response = random.choice(xingamentos)
+    await ctx.send(response)
+    
+@bot.command(name='deez', help='nutz')
+async def frases(ctx):
+    response = "sick of deez niggas"
     await ctx.send(response)
 
 '''Comando de jogar cara ou coroa'''
