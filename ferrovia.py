@@ -3,6 +3,7 @@
 import os
 import random
 import asyncio
+import falas
 
 from dotenv import load_dotenv
 
@@ -12,6 +13,8 @@ import discord
 from discord.ext import commands
 import pafy
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
+import shutil
+from discord.utils import get
 
 
 
@@ -48,19 +51,57 @@ async def on_ready():
 '''Comando de xingar uma frase aleatória'''
 @bot.command(name='leandro', help='Xinga o leandro de tudo quanto é nome')
 async def frases(ctx):
-    xingamentos = ['Vai tomar no cu leandro', 
-                   'Odeio judeus',
-                   'Desista dos seus sonhos e morra',
-                   'Me atire aos lobos, e voltarei morto né porrakkkkkkkkkkkkkkkkkkkkkk',
-                   'mimm cago nas kalssah'
-    ]
-    response = random.choice(xingamentos)
+    response = random.choice(falas.xingamentos)
     await ctx.send(response)
-    
+
+'''Deez Nutz!!'''
 @bot.command(name='deez', help='nutz')
 async def frases(ctx):
     response = "sick of deez niggas"
     await ctx.send(response)
+
+'''Pede pra fazer o L'''
+@bot.command(name='fazueli', help='Peça para ferrovia fazer o L!')
+async def frases(ctx):
+    response = "L é o CARALHO rapa, eu sou robô do BOLSONARO"
+    await ctx.send(response)
+
+
+'''Mandar mensagem prosoto'''
+@bot.command(name='send')
+async def send(ctx):
+    await ctx.send("Please enter the message to send:")
+
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel
+
+    try:
+        message = await bot.wait_for('message', check=check, timeout=60.0)
+        #Manda num canal (descomenta e comenta o abaixo)
+        
+        # channel = bot.get_channel(766684866564849702)
+        # await channel.send(message.content)
+        
+        #Manda pra alguém
+        user = bot.get_user(593531643835318511)
+        await user.send(message.content)
+    except asyncio.TimeoutError:
+        await ctx.send("You took too long to respond!")
+
+'''Detecta quando alguém manda mensagem pro ferrovia e me avisa'''
+@bot.event
+async def on_message(message: discord.Message):
+    # Check if the message is a DM and not from a bot
+    if message.guild is None and not message.author.bot:
+        # Log the message content and the sender
+        print(f"DM from {message.author}: {message.content}")
+        
+        # Send message to me every time a DM is received
+        user = bot.get_user(443844985008422934)
+        await user.send(random.choice(falas.checaOLog))
+    
+    # Process commands if the message is not a DM
+    await bot.process_commands(message)
 
 '''Comando de jogar cara ou coroa'''
 @bot.command(name = 'coinflip', help='Joga cabeças ou caldas, tenta a sorte, pagão!')
@@ -73,16 +114,26 @@ async def caldas(ctx):
     else:
         embed = discord.Embed(title="Cabeças ou caldas!!!", description=f"{ctx.author.mention} Girou a moeda, e ela concedeu **Caldas**! <:dododoo:1101257946383523861>" )
         await ctx.send(embed=embed)
+queues = {}
 
+'''Entra na call'''
 '''Música'''
 '''Entra na call'''
 @bot.command()
 async def join(ctx):
-    channel = ctx.author.voice.channel
+    if not ctx.message.author.voice:
+        await ctx.send("You are not connected to a voice channel.")
+        return
+    else:
+        channel = ctx.message.author.voice.channel
     await channel.connect()
-'''Sai da call'''
+    
 @bot.command()
 async def leave(ctx):
-    await ctx.voice_client.disconnect()
+    voice_client = ctx.message.guild.voice_client
+    if voice_client.is_connected():
+        await voice_client.disconnect()
+    else:
+        await ctx.send("The bot is not connected to a voice channel.")
 
 bot.run(TOKEN)
