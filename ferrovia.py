@@ -57,7 +57,7 @@ async def frases(ctx):
 '''Deez Nutz!!'''
 @bot.command(name='deez', help='nutz')
 async def frases(ctx):
-    response = "sick of deez niggas"
+    response = "sick of deez niger"
     await ctx.send(response)
 
 '''Pede pra fazer o L'''
