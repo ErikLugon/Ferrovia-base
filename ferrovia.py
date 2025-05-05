@@ -51,13 +51,13 @@ async def on_ready():
 '''Frase aleatória'''
 @bot.command(name='speak', help='[Debug] Uma frase aleatória da lista de falas')
 async def frases(ctx):
-    response = random.choice(falas.xingamentos)
+    response = random.choice(falas.lines)
     await ctx.send(response)
 
 '''Deez Nutz!!'''
 @bot.command(name='deez', help='nutz')
 async def frases(ctx):
-    response = "sick of deez nogers"
+    response = "deez nuts"
     await ctx.send(response)
 
 
@@ -80,7 +80,7 @@ async def send(ctx):
         user = bot.get_user(593531643835318511)
         await user.send(message.content)
     except asyncio.TimeoutError:
-        await ctx.send("You took too long to respond!")
+        await ctx.send("Demorou demais pra responder!")
 
 '''Detecta quando alguém manda mensagem pro ferrovia e me avisa'''
 @bot.event
