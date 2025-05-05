@@ -32,7 +32,7 @@ intents.members = True
 intents.typing = True
 intents.presences = True
 bot = commands.Bot(command_prefix='!', intents=intents)
-status = ['VAI TOMA NO CU LEANDRO']
+status = ['Online']
 
 '''Impede que o bot responda a si mesmo'''
 async def on_message(self, message):
@@ -44,7 +44,7 @@ async def on_message(self, message):
 '''Função demostrar os status'''
 @bot.event
 async def on_ready():
-    activity = discord.Game(name="Desista dos seus sonhos!", type=3)
+    activity = discord.Game(name="[status template]", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
     print(f'{bot.user} se conectou!')
 
@@ -60,14 +60,8 @@ async def frases(ctx):
     response = "sick of deez nogers"
     await ctx.send(response)
 
-'''Pede pra fazer o L'''
-@bot.command(name='fazueli', help='Peça para ferrovia fazer o L!')
-async def frases(ctx):
-    response = "L é o CARALHO rapa, eu sou robô do BOLSONARO"
-    await ctx.send(response)
 
-
-'''Mandar mensagem prosoto'''
+'''Mandar mensagem'''
 @bot.command(name='send')
 async def send(ctx):
     await ctx.send("Please enter the message to send:")
