@@ -48,8 +48,8 @@ async def on_ready():
     await bot.change_presence(status=discord.Status, activity=activity)
     print(f'{bot.user} se conectou!')
 
-'''Comando de xingar uma frase aleatória'''
-@bot.command(name='leandro', help='Xinga o leandro de tudo quanto é nome')
+'''Frase aleatória'''
+@bot.command(name='speak', help='[Debug] Uma frase aleatória da lista de falas')
 async def frases(ctx):
     response = random.choice(falas.xingamentos)
     await ctx.send(response)
