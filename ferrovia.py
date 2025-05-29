@@ -7,13 +7,13 @@ import falas
 
 from dotenv import load_dotenv
 
-import youtube_dl
+import yt_dlp as youtube_dl
 
 import discord
 from discord.ext import commands
-import pafy
+## import pafy
 from discord import FFmpegPCMAudio, PCMVolumeTransformer
-import shutil
+## import shutil
 from discord.utils import get
 
 
@@ -98,7 +98,7 @@ async def on_message(message: discord.Message):
         
         # Send message to me every time a DM is received
         user = bot.get_user(443844985008422934)
-        await user.send(random.choice(falas.checaOLog))
+        await user.send(f"DM from {message.author}:\n{message.content}")
     
     # Process commands if the message is not a DM
     await bot.process_commands(message)
@@ -116,8 +116,9 @@ async def caldas(ctx):
         await ctx.send(embed=embed)
 queues = {}
 
-'''Entra na call'''
+
 '''Música'''
+
 '''Entra na call'''
 @bot.command()
 async def join(ctx):
@@ -135,5 +136,27 @@ async def leave(ctx):
         await voice_client.disconnect()
     else:
         await ctx.send("The bot is not connected to a voice channel.")
+
+@bot.command()
+async def play(ctx, url):
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        if not ctx.voice_client:
+            await channel.connect()
+        ydl_opts = {'format': 'bestaudio'}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            url2 = info['url']
+        source = FFmpegPCMAudio(url2)
+        ctx.voice_client.play(source)
+        await ctx.send(f"Tocando: {info['title']}")
+    else:
+        await ctx.send("Você precisa estar em um canal de voz.")
+
+@bot.command()
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.send("Desligando o bot... 👋")
+    await bot.close()
 
 bot.run(TOKEN)
