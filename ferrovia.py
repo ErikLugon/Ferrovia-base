@@ -57,7 +57,7 @@ async def frases(ctx):
 '''Deez Nutz!!'''
 @bot.command(name='deez', help='nutz')
 async def frases(ctx):
-    response = "sick of deez nogers"
+    response = "nuts!"
     await ctx.send(response)
 
 '''Pede pra fazer o L'''
@@ -71,20 +71,31 @@ async def frases(ctx):
 @bot.command(name='send')
 async def send(ctx):
     await ctx.send("Please enter the message to send:")
-
+    
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel
-
+    
     try:
         message = await bot.wait_for('message', check=check, timeout=60.0)
-        #Manda num canal (descomenta e comenta o abaixo)
         
-        # channel = bot.get_channel(766684866564849702)
-        # await channel.send(message.content)
+        await ctx.send("Enter Id")
+        def check_id(id_check):
+            return id_check.author == ctx.author and id_check.channel == ctx.channel
         
-        #Manda pra alguém
-        user = bot.get_user(593531643835318511)
+        id_msg = await bot.wait_for('message', check=check_id, timeout=60.0)
+        try:
+            user_id = int(id_msg.content)
+        except ValueError:
+            await ctx.send("ID inválido. Use apenas números.")
+            return
+
+        user = bot.get_user(user_id)
+        if user is None:
+            await ctx.send("Usuário não encontrado no cache. Tente mencionar o usuário ou espere ele enviar uma mensagem no servidor.")
+            return
+
         await user.send(message.content)
+        await ctx.send("Mensagem enviada!")
     except asyncio.TimeoutError:
         await ctx.send("You took too long to respond!")
 
@@ -98,7 +109,7 @@ async def on_message(message: discord.Message):
         
         # Send message to me every time a DM is received
         user = bot.get_user(443844985008422934)
-        await user.send(f"DM from {message.author}:\n{message.content}")
+        await user.send(f"DM from {message.author} (id:{message.author.id}):\n{message.content}")
     
     # Process commands if the message is not a DM
     await bot.process_commands(message)
@@ -143,17 +154,20 @@ async def play(ctx, url):
         channel = ctx.author.voice.channel
         if not ctx.voice_client:
             await channel.connect()
+        voice = ctx.voice_client
+        if voice.is_playing():
+            voice.stop()  # Para a música atual antes de tocar a nova
         ydl_opts = {'format': 'bestaudio'}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             url2 = info['url']
         source = FFmpegPCMAudio(url2)
-        ctx.voice_client.play(source)
+        voice.play(source)
         await ctx.send(f"Tocando: {info['title']}")
     else:
         await ctx.send("Você precisa estar em um canal de voz.")
 
-@bot.command()
+@bot.command(hidden=True)
 @commands.is_owner()
 async def shutdown(ctx):
     await ctx.send("Desligando o bot... 👋")
