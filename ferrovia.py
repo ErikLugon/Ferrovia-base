@@ -68,9 +68,10 @@ async def frases(ctx):
 
 
 '''Mandar mensagem prosoto'''
-@bot.command(name='send')
+@bot.command(name='send', hidden = True)
+@commands.has_permissions(administrator=True)
 async def send(ctx):
-    await ctx.send("Please enter the message to send:")
+    await ctx.send("Me fale a mensagem:")
     
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel
@@ -97,7 +98,7 @@ async def send(ctx):
         await user.send(message.content)
         await ctx.send("Mensagem enviada!")
     except asyncio.TimeoutError:
-        await ctx.send("You took too long to respond!")
+        await ctx.send("Demorou muito!")
 
 '''Detecta quando alguém manda mensagem pro ferrovia e me avisa'''
 @bot.event
