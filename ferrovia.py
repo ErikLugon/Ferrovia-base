@@ -28,7 +28,6 @@ print(TOKEN)
 '''Pôe pra funcionar'''
 intents = discord.Intents.all()
 intents.members = True
-intents.members = True
 intents.typing = True
 intents.presences = True
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -36,7 +35,6 @@ status = ['VAI TOMA NO CU LEANDRO']
 
 '''Impede que o bot responda a si mesmo'''
 async def on_message(self, message):
-        # we do not want the bot to reply to itself
         if message.author.id == self.user.id:
             return
 
@@ -47,6 +45,7 @@ async def on_ready():
     activity = discord.Game(name="Desista dos seus sonhos!", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
     print(f'{bot.user} se conectou!')
+
 
 '''Comando de xingar uma frase aleatória'''
 @bot.command(name='leandro', help='Xinga o leandro de tudo quanto é nome')
@@ -71,29 +70,56 @@ async def frases(ctx):
 @bot.command(name='send', hidden = True)
 @commands.has_permissions(administrator=True)
 async def send(ctx):
-    await ctx.send("Me fale a mensagem:")
-    
-    def check(m):
-        return m.author == ctx.author and m.channel == ctx.channel
-    
     try:
+        #O bot pede a mensagem
+        await ctx.send("Me fale a mensagem:")
+        
+        #Define a função pra verficar se a mensagem é do usuário que chamou o comando e no canal certo
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+        
+        #Depois que o bot pedir a mensagem, e de checar o autor e o canal, ele espera o usuário responder
+        #Se o usuário não responder em 60 segundos, o bot manda uma mensagem de timeout
+        #A mensagem então é armazenada na variável message
+        
         message = await bot.wait_for('message', check=check, timeout=60.0)
         
-        await ctx.send("Enter Id")
+        #o bot pede o ID do usuário que vai receber a mensagem
+        await ctx.send("Então me manda o ID, pai")
+        #e faz o mesmo check pra ver se a mensagem é do usuário que chamou o comando e no canal certo
         def check_id(id_check):
             return id_check.author == ctx.author and id_check.channel == ctx.channel
-        
+
+        #Depois que o bot pedir o ID, e de checar o autor e o canal, ele espera o usuário responder
+        #O id é armazenado na variável id_msg
         id_msg = await bot.wait_for('message', check=check_id, timeout=60.0)
         try:
-            user_id = int(id_msg.content)
+            user_id = int(id_msg.content) #converte o conteúdo (*.content) da mensagem de string pra integer e armazena na variável user_id
         except ValueError:
             await ctx.send("ID inválido. Use apenas números.")
             return
 
-        user = bot.get_user(user_id)
-        if user is None:
-            await ctx.send("Usuário não encontrado no cache. Tente mencionar o usuário ou espere ele enviar uma mensagem no servidor.")
-            return
+        #O bot pergunta se o usuário quer enviar a mensagem para um canal ou para um usuário
+        # e espera a resposta do usuário
+        #dependendo da resposta, ele envia a mensagem para o canal ou para o usuário
+        
+        if await ctx.send("É canal ou user? (responda com 'canal' ou 'user')"):
+            response = await bot.wait_for('message', check=check, timeout=60.0)
+            
+            #se for canal, armazena o Id do canal na variável channel com bot.get_channel
+            if response.content.lower() == 'canal':
+                channel = bot.get_channel(user_id)
+                if channel is None:
+                    await ctx.send("Canal não encontrado no cache")
+                    return
+                await channel.send(message.content)
+                
+            #se for usuário, armazena o Id na variável user com bot.get_user
+            elif response.content.lower() == 'user':
+                user = bot.get_user(user_id)
+                if user is None:
+                    await ctx.send("Usuário não encontrado no cache. Tente mencionar o usuário ou espere ele enviar uma mensagem no servidor.")
+                    return
 
         await user.send(message.content)
         await ctx.send("Mensagem enviada!")
@@ -126,7 +152,6 @@ async def caldas(ctx):
     else:
         embed = discord.Embed(title="Cabeças ou caldas!!!", description=f"{ctx.author.mention} Girou a moeda, e ela concedeu **Caldas**! <:dododoo:1101257946383523861>" )
         await ctx.send(embed=embed)
-queues = {}
 
 
 '''Música'''
