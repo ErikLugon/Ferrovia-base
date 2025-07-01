@@ -3,15 +3,8 @@
 import os
 import random
 import asyncio
-import time
-
-#Bibliotcas pra loteria
-from astropy.time import Time, TimeDelta
-from datetime import datetime
-
 import falas
 from collections import deque
-
 
 from dotenv import load_dotenv
 
@@ -174,8 +167,8 @@ async def caldas(ctx):
         embed = discord.Embed(title="Cabeças ou caldas!!!", description=f"{ctx.author.mention} Girou a moeda, e ela concedeu **Caldas**! <:dododoo:1101257946383523861>" )
         await ctx.send(embed=embed)
 
+
 '''Música'''
-<<<<<<< Updated upstream
 current_music_info = {}
 music_queues = {}
 
@@ -212,8 +205,6 @@ async def play_next_song(ctx):
         await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
         await ctx.voice_client.disconnect()
 
-=======
->>>>>>> Stashed changes
 '''Entra na call'''
 @bot.command()
 async def join(ctx):
@@ -233,21 +224,12 @@ async def leave(ctx):
         await ctx.send("The bot is not connected to a voice channel.")
         
 @bot.command()
-<<<<<<< Updated upstream
 async def play(ctx, *, query):
-=======
-async def play(ctx, search_term):
-    
-    #Verifica se o usuário está em um canal de voz, se não ele conecta
->>>>>>> Stashed changes
     if ctx.author.voice:
         channel = ctx.author.voice.channel
         if not ctx.voice_client:
             await channel.connect()
-            
-        #armazena o canal de voz na variável voice
         voice = ctx.voice_client
-<<<<<<< Updated upstream
 
         ydl_opts = {
             'format': 'bestaudio[ext=opus]/bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
@@ -327,42 +309,6 @@ async def stop(ctx):
     else:
         await ctx.send("Não estou em um canal de voz.")
 
-=======
-        
-        #verifica se o bot já está tocando algo, se sim, para a música atual antes de tocar a nova
-        if voice.is_playing():
-            voice.stop()  # Para a música atual antes de tocar a nova
-        ydl_opts = {'format': 'bestaudio'}
-        search_url = f"ytsearch10:{search_term}"
-        # Usa youtube_dl para buscar a música
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(search_url, download=False)
-            # Filtra vídeos que NÃO são shorts
-            videos = [v for v in info['entries'] if '/shorts/' not in v.get('webpage_url', '')]
-            if not videos:
-                await ctx.send("Nenhum vídeo válido encontrado (sem shorts).")
-                return
-            video = videos[0]
-            url2 = video['url']
-        source = FFmpegPCMAudio(url2)
-        voice.play(source)
-        await ctx.send(f"Tocando: {info['title']}")
-    else:
-        await ctx.send("Você precisa estar em um canal de voz.")
-        queue = []
-        
-#comando pra parar a música
-@bot.command()
-async def stop(ctx):
-    voice_client = ctx.message.guild.voice_client
-    if voice_client and voice_client.is_connected():
-        voice_client.stop()
-    else:
-        await ctx.send("O bot não ta tocando nada")
-        await voice_client.disconnect()
-        
-       
->>>>>>> Stashed changes
 @bot.command(hidden=True)
 @commands.is_owner()
 async def shutdown(ctx):
