@@ -4,6 +4,7 @@ import os
 import random
 import asyncio
 import falas
+from collections import deque
 
 from dotenv import load_dotenv
 
@@ -44,7 +45,7 @@ async def on_message(self, message):
 async def on_ready():
     activity = discord.Game(name="Desista dos seus sonhos!", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
-    print(f'{bot.user} se conectou!')
+    print(f'{bot.user}: Bem vindo à bordo, capitão!')
 
 
 '''Comando de xingar uma frase aleatória'''
@@ -64,6 +65,19 @@ async def frases(ctx):
 async def frases(ctx):
     response = "L é o CARALHO rapa, eu sou robô do BOLSONARO"
     await ctx.send(response)
+    
+@bot.command(name='poll', help='Cria uma enquete')
+async def poll(ctx, *, question):
+    if not question:
+        await ctx.send("Por favor, forneça uma pergunta para a enquete.")
+        return
+    
+    title = random.choice(falas.poll)
+    embed = discord.Embed(title=title, description=question, color=discord.Color.blue())
+    poll_message = await ctx.send(embed=embed)
+    await ctx.message.delete()  # Deleta a mensagem do autor que chamou o comando
+    await poll_message.add_reaction("👍")
+    await poll_message.add_reaction("👎")
 
 
 '''Mandar mensagem prosoto'''
@@ -155,6 +169,41 @@ async def caldas(ctx):
 
 
 '''Música'''
+current_music_info = {}
+music_queues = {}
+
+async def play_next_song(ctx):
+    if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
+        # Pega a próxima música da fila
+        next_song = music_queues[ctx.guild.id].popleft()
+        
+        final_audio_url = next_song['url']
+        title = next_song['title']
+        webpage_url = next_song['webpage_url']
+
+        # Atualiza as informações da música atual
+        current_music_info[ctx.guild.id] = {
+            'url': final_audio_url,
+            'title': title,
+            'webpage_url': webpage_url
+        }
+
+        ffmpeg_options = {
+            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            'options': '-vn -f s16le -ar 48000 -ac 2'
+        }
+
+        source = FFmpegPCMAudio(final_audio_url, **ffmpeg_options)
+        
+        # Define o callback para quando a música terminar
+        ctx.voice_client.play(source, after=lambda _: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
+        await ctx.send(f"Tocando agora: {title}\nLink: {webpage_url}")
+    else:
+        # Se a fila estiver vazia, limpa as informações da música atual
+        if ctx.guild.id in current_music_info:
+            del current_music_info[ctx.guild.id]
+        await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
+        await ctx.voice_client.disconnect()
 
 '''Entra na call'''
 @bot.command()
@@ -173,25 +222,92 @@ async def leave(ctx):
         await voice_client.disconnect()
     else:
         await ctx.send("The bot is not connected to a voice channel.")
-
+        
 @bot.command()
-async def play(ctx, url):
+async def play(ctx, *, query):
     if ctx.author.voice:
         channel = ctx.author.voice.channel
         if not ctx.voice_client:
             await channel.connect()
         voice = ctx.voice_client
-        if voice.is_playing():
-            voice.stop()  # Para a música atual antes de tocar a nova
-        ydl_opts = {'format': 'bestaudio'}
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            url2 = info['url']
-        source = FFmpegPCMAudio(url2)
-        voice.play(source)
-        await ctx.send(f"Tocando: {info['title']}")
+
+        ydl_opts = {
+            'format': 'bestaudio[ext=opus]/bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
+            'noplaylist': True,
+            'quiet': True,
+            'default_search': 'ytsearch',
+            'source_address': '0.0.0.0',
+        }
+
+        try:
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(query, download=False)
+                
+                if 'entries' in info:
+                    final_audio_url = info['entries'][0]['url']
+                    title = info['entries'][0]['title']
+                    webpage_url = info['entries'][0]['webpage_url']
+                else:
+                    final_audio_url = info['url']
+                    title = info['title']
+                    webpage_url = info['webpage_url']
+
+            song_info = {
+                'url': final_audio_url,
+                'title': title,
+                'webpage_url': webpage_url
+            }
+
+            if voice.is_playing():
+                # Adiciona a música à fila se já estiver tocando
+                if ctx.guild.id not in music_queues:
+                    music_queues[ctx.guild.id] = deque()
+                music_queues[ctx.guild.id].append(song_info)
+                await ctx.send(f"Adicionado à fila: {title}")
+            else:
+                # Começa a tocar imediatamente se nada estiver tocando
+                current_music_info[ctx.guild.id] = song_info
+                ffmpeg_options = {
+                    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                    'options': '-vn -f s16le -ar 48000 -ac 2'
+                }
+                source = FFmpegPCMAudio(final_audio_url, **ffmpeg_options)
+                ctx.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
+                await ctx.send(f"Tocando: {title}\nLink: {webpage_url}")
+
+        except Exception as e:
+            await ctx.send(f"Ocorreu um erro ao tentar tocar a música: {e}")
     else:
         await ctx.send("Você precisa estar em um canal de voz.")
+        
+@bot.command()
+async def queue(ctx):
+    if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
+        queue_list = "\n".join([f"{i+1}. {song['title']}" for i, song in enumerate(music_queues[ctx.guild.id])])
+        await ctx.send(f"Fila de reprodução:\n{queue_list}")
+        
+@bot.command()
+async def skip(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()  # Isso já chama o callback que toca a próxima música
+        await ctx.send("Pulando para a próxima música...")
+    else:
+        await ctx.send("Não estou tocando nada no momento.")
+
+@bot.command()
+async def shuffle(ctx):
+    if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
+        random.shuffle(music_queues[ctx.guild.id])
+        await ctx.send("Fila embaralhada!")
+    else:
+        await ctx.send("A fila de reprodução está vazia. Não há nada para embaralhar.")
+
+@bot.command()
+async def stop(ctx):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+    else:
+        await ctx.send("Não estou em um canal de voz.")
 
 @bot.command(hidden=True)
 @commands.is_owner()

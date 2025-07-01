@@ -5,6 +5,15 @@ checaOLog = ['Checa o log, primata!', 'Checa o log, galinha depenada',
              'tem alguém me mandando mensagem, checa o log',
              ]
 
+poll = ['A pergunta que não quer calar: \n',
+        'Responda aí nego \n',
+        'Pergunta séria: \n',
+        'Será?',
+        'Nada aconteceu na praça da paz celestial \n',
+        'Responda ou sofra a punição divina \n',
+        'Responda ou morra \n',
+]
+
 xingamentos = ['Vai tomar no cu leandro', 
                    'Odeio judeus',
                    'Desista dos seus sonhos e morra',
@@ -40,7 +49,6 @@ xingamentos = ['Vai tomar no cu leandro',
                    ### Nerdice
                    'O que é um homem? uma miserável pilha de segredos',
                    'A Lie will remain a Lie!',
-                   'Louve o sol! \[T]/',
                    'Rocha e pedra!',
                    '_mas ninguém veio_',
                    'Oda é burro',
