@@ -9,6 +9,7 @@ from collections import deque
 from dotenv import load_dotenv
 
 import yt_dlp as youtube_dl
+import yt_dlp_plugins
 
 import discord
 from discord.ext import commands
@@ -237,6 +238,7 @@ async def play(ctx, *, query):
             'quiet': True,
             'default_search': 'ytsearch',
             'source_address': '0.0.0.0',
+            'youtube:no-video-proxy': True,
         }
 
         try:
