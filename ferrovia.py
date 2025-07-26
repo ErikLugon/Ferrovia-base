@@ -172,11 +172,18 @@ async def caldas(ctx):
 '''Música'''
 current_music_info = {}
 music_queues = {}
+looping = False
 
 async def play_next_song(ctx):
     if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
         # Pega a próxima música da fila
-        next_song = music_queues[ctx.guild.id].popleft()
+        if looping:
+            # Se looping está ativado, pega a música da frente e coloca de volta no final
+            next_song = music_queues[ctx.guild.id][0] # Pega a música sem remover
+            music_queues[ctx.guild.id].rotate(-1) # Move a música atual para o final
+        else:
+            # Se looping está desativado, remove a música da fila
+            next_song = music_queues[ctx.guild.id].popleft()
         
         final_audio_url = next_song['url']
         title = next_song['title']
@@ -205,7 +212,7 @@ async def play_next_song(ctx):
             del current_music_info[ctx.guild.id]
         await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
         await ctx.voice_client.disconnect()
-
+        
 '''Entra na call'''
 @bot.command()
 async def join(ctx):
@@ -285,8 +292,10 @@ async def play(ctx, *, query):
 @bot.command()
 async def queue(ctx):
     if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
-        queue_list = "\n".join([f"{i+1}. {song['title']}" for i, song in enumerate(music_queues[ctx.guild.id])])
+        queue_list = "\n".join([f"{i}. {song['title']}" for i, song in enumerate(music_queues[ctx.guild.id])])
         await ctx.send(f"Fila de reprodução:\n{queue_list}")
+    else:
+        await ctx.send("A fila de reprodução está vazia.")
         
 @bot.command()
 async def skip(ctx):
@@ -310,6 +319,13 @@ async def stop(ctx):
         await ctx.voice_client.disconnect()
     else:
         await ctx.send("Não estou em um canal de voz.")
+        
+@bot.command()
+async def loop(ctx):
+    global looping
+    looping = not looping
+    status = "ativado" if looping else "desativado"
+    await ctx.send(f"Loop da fila {status}.")
 
 @bot.command(hidden=True)
 @commands.is_owner()
