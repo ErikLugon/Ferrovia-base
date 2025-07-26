@@ -112,6 +112,52 @@ queues = {}
 
 '''Entra na call'''
 '''Música'''
+<<<<<<< Updated upstream
+=======
+current_music_info = {}
+music_queues = {}
+looping = False
+
+async def play_next_song(ctx):
+    if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
+        # Pega a próxima música da fila
+        if looping:
+            # Se looping está ativado, pega a música da frente e coloca de volta no final
+            next_song = music_queues[ctx.guild.id][0] # Pega a música sem remover
+            music_queues[ctx.guild.id].rotate(-1) # Move a música atual para o final
+        else:
+            # Se looping está desativado, remove a música da fila
+            next_song = music_queues[ctx.guild.id].popleft()
+        
+        final_audio_url = next_song['url']
+        title = next_song['title']
+        webpage_url = next_song['webpage_url']
+
+        # Atualiza as informações da música atual
+        current_music_info[ctx.guild.id] = {
+            'url': final_audio_url,
+            'title': title,
+            'webpage_url': webpage_url
+        }
+
+        ffmpeg_options = {
+            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            'options': '-vn -f s16le -ar 48000 -ac 2'
+        }
+
+        source = FFmpegPCMAudio(final_audio_url, **ffmpeg_options)
+        
+        # Define o callback para quando a música terminar
+        ctx.voice_client.play(source, after=lambda _: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
+        await ctx.send(f"Tocando agora: {title}\nLink: {webpage_url}")
+    else:
+        # Se a fila estiver vazia, limpa as informações da música atual
+        if ctx.guild.id in current_music_info:
+            del current_music_info[ctx.guild.id]
+        await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
+        await ctx.voice_client.disconnect()
+
+>>>>>>> Stashed changes
 '''Entra na call'''
 @bot.command()
 async def join(ctx):
@@ -129,5 +175,109 @@ async def leave(ctx):
         await voice_client.disconnect()
     else:
         await ctx.send("The bot is not connected to a voice channel.")
+<<<<<<< Updated upstream
+=======
+        
+@bot.command()
+async def play(ctx, *, query):
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        if not ctx.voice_client:
+            await channel.connect()
+        voice = ctx.voice_client
+
+        ydl_opts = {
+            'format': 'bestaudio[ext=opus]/bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
+            'noplaylist': True,
+            'quiet': True,
+            'default_search': 'ytsearch',
+            'source_address': '0.0.0.0',
+            'youtube:no-video-proxy': True,
+        }
+
+        try:
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(query, download=False)
+                
+                if 'entries' in info:
+                    final_audio_url = info['entries'][0]['url']
+                    title = info['entries'][0]['title']
+                    webpage_url = info['entries'][0]['webpage_url']
+                else:
+                    final_audio_url = info['url']
+                    title = info['title']
+                    webpage_url = info['webpage_url']
+
+            song_info = {
+                'url': final_audio_url,
+                'title': title,
+                'webpage_url': webpage_url
+            }
+
+            if voice.is_playing():
+                # Adiciona a música à fila se já estiver tocando
+                if ctx.guild.id not in music_queues:
+                    music_queues[ctx.guild.id] = deque()
+                music_queues[ctx.guild.id].append(song_info)
+                await ctx.send(f"Adicionado à fila: {title}")
+            else:
+                # Começa a tocar imediatamente se nada estiver tocando
+                # Adiciona a música à fila antes de tocar
+                if ctx.guild.id not in music_queues:
+                    music_queues[ctx.guild.id] = deque()
+                music_queues[ctx.guild.id].append(song_info)
+                
+                # Chama play_next_song para iniciar a reprodução da fila
+                await play_next_song(ctx)
+
+        except Exception as e:
+            await ctx.send(f"Ocorreu um erro ao tentar tocar a música: {e}")
+    else:
+        await ctx.send("Você precisa estar em um canal de voz.")
+        
+@bot.command()
+async def queue(ctx):
+    if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
+        queue_list = "\n".join([f"{i+1}. {song['title']}" for i, song in enumerate(music_queues[ctx.guild.id])])
+        await ctx.send(f"Fila de reprodução:\n{queue_list}")
+    else:
+        await ctx.send("A fila de reprodução está vazia.")
+        
+@bot.command()
+async def skip(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()  # Isso já chama o callback que toca a próxima música
+        await ctx.send("Pulando para a próxima música...")
+    else:
+        await ctx.send("Não estou tocando nada no momento.")
+
+@bot.command()
+async def shuffle(ctx):
+    if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
+        random.shuffle(music_queues[ctx.guild.id])
+        await ctx.send("Fila embaralhada!")
+    else:
+        await ctx.send("A fila de reprodução está vazia. Não há nada para embaralhar.")
+
+@bot.command()
+async def stop(ctx):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+    else:
+        await ctx.send("Não estou em um canal de voz.")
+        
+@bot.command()
+async def loop(ctx):
+    global looping
+    looping = not looping
+    status = "ativado" if looping else "desativado"
+    await ctx.send(f"Loop da fila {status}.")
+
+@bot.command(hidden=True)
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.send("Desligando o bot... 👋")
+    await bot.close()
+>>>>>>> Stashed changes
 
 bot.run(TOKEN)
