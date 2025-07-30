@@ -7,7 +7,6 @@ from collections import deque
 from dotenv import load_dotenv
 
 import yt_dlp as youtube_dl
-import yt_dlp_plugins
 
 import discord
 from discord.ext import commands
