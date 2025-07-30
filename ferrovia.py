@@ -1,5 +1,3 @@
-#ferrovia.py
-
 import os
 import random
 import asyncio
@@ -46,7 +44,7 @@ async def on_message(self, message):
 async def on_ready():
     activity = discord.Game(name="Desista dos seus sonhos!", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
-    print(f'{bot.user}: Bem vindo à bordo, capitão!')
+    print(f'{bot.user}: Bem vindo, Aristocrata!')
 
 
 '''Comando de xingar uma frase aleatória'''
@@ -169,7 +167,7 @@ async def caldas(ctx):
         await ctx.send(embed=embed)
 
 
-'''Música'''
+'Música'
 current_music_info = {}
 music_queues = {}
 looping = False
@@ -184,6 +182,7 @@ async def play_next_song(ctx):
         else:
             # Se looping está desativado, remove a música da fila
             next_song = music_queues[ctx.guild.id].popleft()
+            
         
         final_audio_url = next_song['url']
         title = next_song['title']
@@ -210,10 +209,10 @@ async def play_next_song(ctx):
         # Se a fila estiver vazia, limpa as informações da música atual
         if ctx.guild.id in current_music_info:
             del current_music_info[ctx.guild.id]
-        await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
-        await ctx.voice_client.disconnect()
-        
-'''Entra na call'''
+        ### await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
+        ### await ctx.voice_client.disconnect()
+
+'Entra na call'
 @bot.command()
 async def join(ctx):
     if not ctx.message.author.voice:
@@ -267,22 +266,18 @@ async def play(ctx, *, query):
                 'webpage_url': webpage_url
             }
 
-            if voice.is_playing():
-                # Adiciona a música à fila se já estiver tocando
-                if ctx.guild.id not in music_queues:
-                    music_queues[ctx.guild.id] = deque()
-                music_queues[ctx.guild.id].append(song_info)
-                await ctx.send(f"Adicionado à fila: {title}")
+            # Sempre adiciona a música à fila
+            if ctx.guild.id not in music_queues:
+                music_queues[ctx.guild.id] = deque()
+            music_queues[ctx.guild.id].append(song_info)
+
+            if not voice.is_playing():
+                # Se nada estiver tocando, inicia a reprodução da primeira música da fila
+                # A música já foi adicionada à fila acima, então play_next_song vai pegá-la
+                await play_next_song(ctx)
             else:
-                # Começa a tocar imediatamente se nada estiver tocando
-                current_music_info[ctx.guild.id] = song_info
-                ffmpeg_options = {
-                    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                    'options': '-vn -f s16le -ar 48000 -ac 2'
-                }
-                source = FFmpegPCMAudio(final_audio_url, **ffmpeg_options)
-                ctx.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
-                await ctx.send(f"Tocando: {title}\nLink: {webpage_url}")
+                # Se já estiver tocando, apenas informa que a música foi adicionada à fila
+                await ctx.send(f"Adicionado à fila: {title}")
 
         except Exception as e:
             await ctx.send(f"Ocorreu um erro ao tentar tocar a música: {e}")
@@ -292,7 +287,9 @@ async def play(ctx, *, query):
 @bot.command()
 async def queue(ctx):
     if ctx.guild.id in music_queues and music_queues[ctx.guild.id]:
-        queue_list = "\n".join([f"{i}. {song['title']}" for i, song in enumerate(music_queues[ctx.guild.id])])
+        # A música atual é sempre a primeira da fila (music_queues[ctx.guild.id][0])
+        # Não é necessário adicionar current_music_info, pois a fila já contém a música atual
+        queue_list = "\n".join([f"{i+1}. {song['title']}" for i, song in enumerate(music_queues[ctx.guild.id])])
         await ctx.send(f"Fila de reprodução:\n{queue_list}")
     else:
         await ctx.send("A fila de reprodução está vazia.")
@@ -325,6 +322,15 @@ async def loop(ctx):
     global looping
     looping = not looping
     status = "ativado" if looping else "desativado"
+    
+    if looping:
+        # Pega a música que está tocando atualmente
+        current_song = current_music_info.get(ctx.guild.id)
+        if not current_song:
+            await ctx.send("Nenhuma música está tocando no momento para repetir.")
+            return
+        # Adiciona a música atual ao final da fila para repetir
+        music_queues.setdefault(ctx.guild.id, deque()).append(current_song)
     await ctx.send(f"Loop da fila {status}.")
 
 @bot.command(hidden=True)
@@ -333,4 +339,7 @@ async def shutdown(ctx):
     await ctx.send("Desligando o bot... 👋")
     await bot.close()
 
+
 bot.run(TOKEN)
+
+
