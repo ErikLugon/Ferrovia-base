@@ -14,6 +14,17 @@ poll = ['A pergunta que não quer calar: \n',
         'Responda ou morra \n',
 ]
 
+musica = ['Tocando uma pra você \n',
+          'É pra já meu rei... \n',
+          'É pra já meu aristocrata... \n',
+          'Bongo faz isso?? \n',
+          'Pancake faz isso?? \n',
+          'Um dia eu vou caçar todos vocês \n',
+          'Essa é deliciosa \n',
+          'Bota um leno brega pra tocar nessa porra \n',
+          'E aí moreno, o que vamos ouvir hoje?'
+          'WRRRREEEEEEEEEEEEEEEEEEEEEEEEE']
+
 xingamentos = ['Vai tomar no cu leandro', 
                    'Odeio judeus',
                    'Desista dos seus sonhos e morra',
@@ -38,8 +49,23 @@ xingamentos = ['Vai tomar no cu leandro',
                    "Baldur's Gate 3 ta 12 conto na gog :eyes:",
                    'uff :fire:',
                    'Rosa eu dou pra quem tá morta pra quem tá vivo eu dou piroca',
-                   'nunca vou sentir a dor de um coração partido :fire::fire::fire:, até porque eu não tenho coração né porra kkkkkkkkk',
+                   'nunca vou sentir a dor de um coração partido :fire::fire::fire: até porque eu não tenho coração né porra kkkkkkkkk',
                    'Cê vai na carne ou na mandioca?',
+                   'Eles atinjiram a segunda call!',
+                   'Os homens do mar atacaram de novo',
+                   
+                   ### Desgraça
+                   'Toma a kunai pra tu ver',
+                   'Bora penera a brita',
+                   'Qual o preço do cachorro quente, galego?',
+                   'Tem como peneirar isso não desgraça?',
+                   'Calma pai!',
+                   'Chora que eu te dou o pó de 10',
+                   '"O ignorante afirma, o sábio duvida, o sensato reflete". - Molestóteles.'
+                   'Já sabe onde o sábio é geralmente encontrado né kkkkkkkk',
+                   'Não clique na tela durante o loading!',
+                   
+                
                    
                    
                    ### Memes random
