@@ -1,7 +1,8 @@
 import random
 import yt_dlp as youtube_dl
 import asyncio
-from collections import deque
+import threading
+from collections import deque, OrderedDict
 import discord
 from discord.ext import commands
 
@@ -21,6 +22,24 @@ class Music(commands.Cog):
         # Referência ao estado global, embora seja melhor encapsular isso
         # dentro da classe Cog ou usar bot.get_cog('Musica').guild_music_states
         self.guild_music_states = guild_music_states
+        # Reusar uma instância YoutubeDL para reduzir custo de inicialização
+        self.ydl_opts = {
+            'format': 'bestaudio/best',
+            'noplaylist': True,
+            'quiet': True,
+            'no_warnings': True,
+            'default_search': 'ytsearch',
+            'source_address': '0.0.0.0',
+        }
+        try:
+            self.ydl = youtube_dl.YoutubeDL(self.ydl_opts)
+        except Exception:
+            # fallback: construa quando necessário
+            self.ydl = None
+        self.ydl_lock = threading.Lock()
+        # Cache simples (LRU) para acelerar buscas repetidas
+        self.url_cache = OrderedDict()
+        self.cache_size = 128
 
     async def play_next_song(self, ctx):
         guild_id = ctx.guild.id
@@ -40,8 +59,6 @@ class Music(commands.Cog):
             else:
                 # Se a fila ficou vazia (e não está em loop), não há mais nada para tocar
                 state.current_song = None
-                if ctx.voice_client:
-                    await ctx.send("Acabou o show!")
                 return
 
             state.current_song = next_song
@@ -79,7 +96,7 @@ class Music(commands.Cog):
     @commands.command()
     async def join(self, ctx):
         if not ctx.message.author.voice:
-            await ctx.send("You are not connected to a voice channel.")
+            await ctx.send("Você não está em um canal de voz!")
             return
         else:
             channel = ctx.message.author.voice.channel
@@ -95,7 +112,7 @@ class Music(commands.Cog):
                 del self.guild_music_states[guild_id] # Limpa o estado da guild ao desconectar
             await ctx.send("Desconectado do canal de voz.")
         else:
-            await ctx.send("The bot is not connected to a voice channel.")
+            await ctx.send("Não estou em um canal de voz.")
             
     @commands.command()
     async def play(self, ctx, *, query):
@@ -111,29 +128,57 @@ class Music(commands.Cog):
                 await channel.connect()
             voice = ctx.voice_client
 
-            ydl_opts = {
-                'format': 'bestaudio[ext=opus]/bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
-                'noplaylist': True,
-                'quiet': True,
-                'default_search': 'ytsearch',
-                'source_address': '0.0.0.0',
-                'youtube:no-video-proxy': True,
-            }
+            # Check cache first
+            cache_key = query.strip()
+            if cache_key in self.url_cache:
+                song_info = self.url_cache.pop(cache_key)
+                # re-inserir para marcar como recente
+                self.url_cache[cache_key] = song_info
+                state.queue.append(song_info)
+                await ctx.send(random.choice(falas.musica))
+                if not voice.is_playing():
+                    await self.play_next_song(ctx)
+                else:
+                    await ctx.send(f"Adicionado à fila: {song_info['title']}")
+                return
+
+            # Prepare extractor (reutiliza self.ydl quando possível)
+            if not self.ydl:
+                self.ydl = youtube_dl.YoutubeDL(self.ydl_opts)
+
+            def extract(q):
+                with self.ydl_lock:
+                    return self.ydl.extract_info(q, download=False)
 
             try:
-                await ctx.send(random.choice(falas.musica))
-                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(query, download=False)
-                    
-                    if 'entries' in info:
-                        # Se for uma playlist ou resultado de busca com múltiplos, pega o primeiro
-                        entry = info['entries'][0]
-                    else:
-                        entry = info
+                info = await asyncio.to_thread(extract, query)
 
-                    final_audio_url = entry['url']
-                    title = entry['title']
-                    webpage_url = entry['webpage_url']
+                if 'entries' in info and info['entries']:
+                    entry = info['entries'][0]
+                else:
+                    entry = info
+
+                formats = entry.get('formats') or [entry]
+                audio_formats = [f for f in formats if f.get('acodec') and f.get('acodec') != 'none']
+                if audio_formats:
+                    best = max(audio_formats, key=lambda f: f.get('abr') or f.get('tbr') or 0)
+                    final_audio_url = best.get('url')
+                else:
+                    final_audio_url = entry.get('url')
+
+                title = entry.get('title')
+                webpage_url = entry.get('webpage_url')
+
+                song_info = {
+                    'url': final_audio_url,
+                    'title': title,
+                    'webpage_url': webpage_url
+                }
+
+                # adiciona ao cache LRU
+                self.url_cache[cache_key] = song_info
+                if len(self.url_cache) > self.cache_size:
+                    self.url_cache.popitem(last=False)
 
                 song_info = {
                     'url': final_audio_url,
@@ -142,7 +187,8 @@ class Music(commands.Cog):
                 }
 
                 state.queue.append(song_info)
-
+                
+                await ctx.send(random.choice(falas.musica))
                 if not voice.is_playing():
                     await self.play_next_song(ctx)
                 else:

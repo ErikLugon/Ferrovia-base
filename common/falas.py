@@ -22,8 +22,9 @@ musica = ['Tocando uma pra você \n',
           'Um dia eu vou caçar todos vocês \n',
           'Essa é deliciosa \n',
           'Bota um leno brega pra tocar nessa porra \n',
-          'E aí moreno, o que vamos ouvir hoje?'
-          'WRRRREEEEEEEEEEEEEEEEEEEEEEEEE']
+          'E aí moreno, o que vamos ouvir hoje?',
+          'WRRRREEEEEEEEEEEEEEEEEEEEEEEEE'
+          ]
 
 xingamentos = ['Vai tomar no cu leandro', 
                    'Odeio judeus',
@@ -77,6 +78,5 @@ xingamentos = ['Vai tomar no cu leandro',
                    'A Lie will remain a Lie!',
                    'Rocha e pedra!',
                    '_mas ninguém veio_',
-                   'Oda é burro',
-                                                       
-    ]
+                   'Oda é burro',                                                      
+                ]
