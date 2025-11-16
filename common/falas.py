@@ -65,6 +65,7 @@ xingamentos = ['Vai tomar no cu leandro',
                    '"O ignorante afirma, o sábio duvida, o sensato reflete". - Molestóteles.'
                    'Já sabe onde o sábio é geralmente encontrado né kkkkkkkk',
                    'Não clique na tela durante o loading!',
+                   'Um dia eu vou pegar todos vocês',
                    
                 
                    
