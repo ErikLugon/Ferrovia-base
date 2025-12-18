@@ -23,10 +23,11 @@ musica = ['Tocando uma pra você \n',
           'Essa é deliciosa \n',
           'Bota um leno brega pra tocar nessa porra \n',
           'E aí moreno, o que vamos ouvir hoje?',
-          'WRRRREEEEEEEEEEEEEEEEEEEEEEEEE'
+          'WRRRREEEEEEEEEEEEEEEEEEEEEEEEE',
           ]
 
-xingamentos = ['Vai tomar no cu leandro', 
+xingamentos = [
+                'Vai tomar no cu leandro', 
                    'Odeio judeus',
                    'Desista dos seus sonhos e morra',
                    'Me atire aos lobos, e voltarei morto né porrakkkkkkkkkkkkkkkkkkkkkk',
@@ -54,6 +55,8 @@ xingamentos = ['Vai tomar no cu leandro',
                    'Cê vai na carne ou na mandioca?',
                    'Eles atinjiram a segunda call!',
                    'Os homens do mar atacaram de novo',
+                   'Por 11 reais...',
+                   'Não pergunte ao lores o que ele faria com 11 reais',
                    
                    ### Desgraça
                    'Toma a kunai pra tu ver',
