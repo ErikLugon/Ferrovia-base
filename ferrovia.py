@@ -31,7 +31,7 @@ intents.members = True
 intents.typing = True
 intents.presences = True
 bot = commands.Bot(command_prefix='!', intents=intents)
-status = ['TOME NO CU LEANDRO']
+status = ['VAI TOMA NO CU LEANDRO']
 
 'Carrega os Cogs'
 initial_extensions = [
@@ -192,8 +192,4 @@ async def main():
         await load_cogs()
         await bot.start(TOKEN)
 
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Bot morto à tiros pelo dono. (Erro chato de KeyboardInterrupt por conta do asyncio.run)")
+asyncio.run(main())
