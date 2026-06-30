@@ -90,37 +90,51 @@ async def on_message(message: discord.Message):
 # --- Contador Diário "Lores vs. Isshin" ---
 COUNTER_KEY = "lores_isshin_counter"
 CHANNEL_ID = 1056324441153486968
+LORES_ID = 670333731550265402
+isshin_answered_today = False
+
 @tasks.loop(hours=1)
 async def daily_check():
-    # 1. Recupera o estado atual do contador
-    result = db.get_global_setting(COUNTER_KEY)
-    logger.debug("daily_check: raw result from db: %s", result)
-    today_date = datetime.now().date()
+    global isshin_answered_today
+    now = datetime.now()
     
-    if result is None:
-        # Primeira execução: inicializa o contador
-        current_count = 1
-        # Salva o valor inicial e a data de hoje
-        logger.info("daily_check: inicializando contador para %s em %s", current_count, today_date.isoformat())
-        db.set_global_setting(COUNTER_KEY, str(current_count), today_date.isoformat())
-    else:
-        current_count = int(result[0])
-        last_update_str = result[1]
-        # O db_manager armazena a data como string ISO
-        last_update_date = datetime.fromisoformat(last_update_str).date()
-        logger.debug("daily_check: current_count=%s last_update=%s today=%s", current_count, last_update_date, today_date)
-
-        # 2. Verifica se um novo dia começou desde a última atualização
-        if today_date > last_update_date:
-            # Incrementa o contador
-            new_count = current_count + 1
-            # Atualiza o banco de dados com o novo valor e a data de hoje
-            logger.info("daily_check: incrementando contador %s -> %s", current_count, new_count)
-            db.set_global_setting(COUNTER_KEY, str(new_count), today_date.isoformat())
-            # 3. Envia a mensagem no canal desejado (opcional)
+    # Às 20:00 - Pergunta pro Lores
+    if now.hour == 20 and now.minute == 0:
+        result = db.get_global_setting(COUNTER_KEY)
+        today_date = datetime.now().date()
+        
+        if result is None:
+            current_count = 0
+            db.set_global_setting(COUNTER_KEY, str(current_count), today_date.isoformat())
+        else:
+            current_count = int(result[0])
+        
+        lores = bot.get_user(LORES_ID)
+        if lores:
+            await lores.send("E aí Vassalo, já matou o Isshin hoje?")
+            try:
+                response = await bot.wait_for('message', timeout=86400, check=lambda msg: msg.author.id == LORES_ID)
+                if response.content.lower() in ['sim', 'matei', 'yes', 's', 'y']:
+                    isshin_answered_today = True
+                    new_count = current_count + 1
+                    db.set_global_setting(COUNTER_KEY, str(new_count), today_date.isoformat())
+                    channel = bot.get_channel(CHANNEL_ID)
+                    if channel:
+                        await channel.send(f"Lores está matando o Isshin a **{new_count}** dias consecutivos!")
+                    logger.info("daily_check: contador incrementado para %s", new_count)
+            except asyncio.TimeoutError:
+                logger.info("daily_check: timeout aguardando resposta do Lores")
+    
+    # Às 00:00 - Reseta o contador se não respondeu
+    if now.hour == 0 and now.minute == 0:
+        if not isshin_answered_today:
+            db.set_global_setting(COUNTER_KEY, "0", datetime.now().date().isoformat())
             channel = bot.get_channel(CHANNEL_ID)
             if channel:
-                await channel.send(f"Lores está matando o Isshin a **{new_count}** dias consecutivos.")
+                await channel.send("O Viado do Lores não matou o Isshin. Contador resetado para **0** dias.")
+            logger.info("daily_check: contador resetado")
+        
+        isshin_answered_today = False
 
 @daily_check.before_loop
 async def wait_until_bot_ready_for_daily_check():
@@ -142,8 +156,13 @@ async def isshin(ctx):
         await ctx.send("O contador 'Lores vs. Isshin' ainda não foi inicializado. Tente novamente mais tarde.")
     else:
         current_count = int(result[0])
-        # A resposta é enviada para o canal de onde veio o comando
-        await ctx.send(f"Lores está matando o Isshin a **{current_count}** dias.")
+        last_update_str = result[1]
+        last_update_date = datetime.fromisoformat(last_update_str).date()
+        today_date = datetime.now().date()
+        
+        killed_today = "Lores matou o Isshin hoje!" if last_update_date == today_date else "O Viado do Lores não matou hoje."
+        
+        await ctx.send(f"Lores está matando o Isshin a **{current_count}** dias consecutivos.\n{killed_today}")
 
 
 # --- Comando admin !set_isshin <dias> ---

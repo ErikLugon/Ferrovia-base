@@ -89,7 +89,6 @@ class Music(commands.Cog):
         else:
             state.current_song = None
             if ctx.voice_client:
-                await ctx.send("Fila de reprodução vazia. Desconectando do canal de voz.")
                 await ctx.voice_client.disconnect()
 
     # Entra na call
@@ -236,13 +235,13 @@ class Music(commands.Cog):
             await self.play_next_song(ctx)
             await ctx.send("Pulando para a próxima música...")
         else:
-            await ctx.send("Não estou tocando nada no momento.")
+            await ctx.send("cri cri cri... Você tem medo?")
 
     @commands.command()
     async def shuffle(self, ctx):
         guild_id = ctx.guild.id
         if guild_id not in self.guild_music_states or not self.guild_music_states[guild_id].queue:
-            await ctx.send("A fila de reprodução está vazia. Não há nada para embaralhar.")
+            await ctx.send("A fila de reprodução está vazia, pai")
             return
         
         state = self.guild_music_states[guild_id]
@@ -260,9 +259,9 @@ class Music(commands.Cog):
             guild_id = ctx.guild.id
             if guild_id in self.guild_music_states:
                 del self.guild_music_states[guild_id] # Limpa o estado da guild ao desconectar
-            await ctx.send("Parado e desconectado do canal de voz.")
+            await ctx.send("Abueno adios master!")
         else:
-            await ctx.send("Não estou em um canal de voz.")
+            await ctx.send("To não")
             
     @commands.command()
     async def loop(self, ctx):
