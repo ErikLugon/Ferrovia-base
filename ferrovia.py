@@ -60,14 +60,7 @@ async def on_message(self, message):
 async def on_ready():
     activity = discord.Game(name="Desista dos seus sonhos!", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
-<<<<<<< Updated upstream
-    if not daily_check.is_running():
-        daily_check.start()
-    # A mensagem de boas-vindas será impressa quando tudo estiver 100% pronto
-    # (veja `wait_until_bot_ready_for_daily_check`).
-    
-=======
->>>>>>> Stashed changes
+    print(f'{bot.user}: Bem vindo, Aristocrata!')
 
 @bot.event
 async def on_member_join(member):
@@ -90,114 +83,11 @@ async def on_message(message: discord.Message):
     # Process commands if the message is not a DM
     await bot.process_commands(message)
     
-<<<<<<< Updated upstream
-# --- Contador Diário "Lores vs. Isshin" ---
-COUNTER_KEY = "lores_isshin_counter"
-CHANNEL_ID = 1056324441153486968
-LORES_ID = 670333731550265402
-isshin_answered_today = False
-
-@tasks.loop(hours=1)
-async def daily_check():
-    global isshin_answered_today
-    now = datetime.now()
-    
-    # Às 20:00 - Pergunta pro Lores
-    if now.hour == 20 and now.minute == 0:
-        result = db.get_global_setting(COUNTER_KEY)
-        today_date = datetime.now().date()
-        
-        if result is None:
-            current_count = 0
-            db.set_global_setting(COUNTER_KEY, str(current_count), today_date.isoformat())
-        else:
-            current_count = int(result[0])
-        
-        lores = bot.get_user(LORES_ID)
-        if lores:
-            await lores.send("E aí Vassalo, já matou o Isshin hoje?")
-            try:
-                response = await bot.wait_for('message', timeout=86400, check=lambda msg: msg.author.id == LORES_ID)
-                if response.content.lower() in ['sim', 'matei', 'yes', 's', 'y']:
-                    isshin_answered_today = True
-                    new_count = current_count + 1
-                    db.set_global_setting(COUNTER_KEY, str(new_count), today_date.isoformat())
-                    channel = bot.get_channel(CHANNEL_ID)
-                    if channel:
-                        await channel.send(f"Lores está matando o Isshin a **{new_count}** dias consecutivos!")
-                    logger.info("daily_check: contador incrementado para %s", new_count)
-            except asyncio.TimeoutError:
-                logger.info("daily_check: timeout aguardando resposta do Lores")
-    
-    # Às 00:00 - Reseta o contador se não respondeu
-    if now.hour == 0 and now.minute == 0:
-        if not isshin_answered_today:
-            db.set_global_setting(COUNTER_KEY, "0", datetime.now().date().isoformat())
-            channel = bot.get_channel(CHANNEL_ID)
-            if channel:
-                await channel.send("O Viado do Lores não matou o Isshin. Contador resetado para **0** dias.")
-            logger.info("daily_check: contador resetado")
-        
-        isshin_answered_today = False
-
-@daily_check.before_loop
-async def wait_until_bot_ready_for_daily_check():
-    # Espera até que o bot esteja pronto
-    await bot.wait_until_ready()
-    print("Contando quantas vezes o lores matou o Isshin...")
-    
-    await asyncio.sleep(0.5)
-    print(f'{bot.user}: Bem vindo, Aristocrata!')
-
-# --- Comando !isshin (Função do Bot) ---
-
-@bot.command(name='isshin', help='Mostra o valor atual do contador de dias que Lores está matando Isshin.')
-async def isshin(ctx):
-    # O 'ctx' (contexto) garante que a resposta seja enviada para o canal onde o comando foi digitado.
-    result = db.get_global_setting(COUNTER_KEY)
-    logger.debug("command !isshin: db result=%s", result)
-    if result is None:
-        await ctx.send("O contador 'Lores vs. Isshin' ainda não foi inicializado. Tente novamente mais tarde.")
-    else:
-        current_count = int(result[0])
-        last_update_str = result[1]
-        last_update_date = datetime.fromisoformat(last_update_str).date()
-        today_date = datetime.now().date()
-        
-        killed_today = "Lores matou o Isshin hoje!" if last_update_date == today_date else "O Viado do Lores não matou hoje."
-        
-        await ctx.send(f"Lores está matando o Isshin a **{current_count}** dias consecutivos.\n{killed_today}")
-
-
-# --- Comando admin !set_isshin <dias> ---
-@bot.command(name='set_isshin', help='Define manualmente o contador !isshin. Uso: !set_isshin 14')
-async def set_isshin(ctx, days: int):
-    # Permissão restrita: apenas o dono (ID hardcoded) pode usar
-    owner_id = 443844985008422934
-    if ctx.author.id != owner_id:
-        await ctx.send('Apenas o dono do bot pode usar este comando.')
-        return
-    if days < 0:
-        await ctx.send('O valor do contador deve ser maior ou igual a 0.')
-        return
-    today_iso = datetime.now().date().isoformat()
-    try:
-        db.set_global_setting(COUNTER_KEY, str(days), today_iso)
-        logger.info("set_isshin: %s definiu contador para %s (last_update=%s)", ctx.author, days, today_iso)
-        await ctx.send(f"Contador definido para **{days}** dias. (last_update={today_iso})")
-    except Exception as e:
-        logger.exception("Erro ao definir contador via comando set_isshin: %s", e)
-        await ctx.send('Ocorreu um erro ao definir o contador. Veja os logs.')
-=======
->>>>>>> Stashed changes
 
 async def main():
-    # Garantir que o banco de dados e tabelas existam antes de iniciar o bot
-    db.setup_database()
     async with bot:
         await load_cogs()
         await bot.start(TOKEN)
-        print(f'{bot.user}: Bem vindo, Aristocrata!')
        
 
 asyncio.run(main())
