@@ -259,7 +259,7 @@ class Music(commands.Cog):
             guild_id = ctx.guild.id
             if guild_id in self.guild_music_states:
                 del self.guild_music_states[guild_id] # Limpa o estado da guild ao desconectar
-            await ctx.send("Abueno adios master!")
+            await ctx.send("Abueno adios master")
         else:
             await ctx.send("To não")
             

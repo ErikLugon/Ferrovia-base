@@ -10,7 +10,6 @@ import logging
 import yt_dlp as youtube_dl
 
 ##imports pro discord
-import common.db_manager as db
 import discord
 from discord.ext import commands, tasks
 
@@ -82,7 +81,17 @@ async def on_message(message: discord.Message):
     
     # Process commands if the message is not a DM
     await bot.process_commands(message)
-    
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send("Tem esse comando não pai, tenta outro.")
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Ta falando grego filha da puta, me passa os argumentos direito")
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.send("Você não tem o direito de me pedir isso, plebeu")
+    else:
+        await ctx.send(f"Ocorreu um erro: {str(error)}")
 
 async def main():
     async with bot:
