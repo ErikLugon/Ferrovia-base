@@ -60,11 +60,14 @@ async def on_message(self, message):
 async def on_ready():
     activity = discord.Game(name="Desista dos seus sonhos!", type=3)
     await bot.change_presence(status=discord.Status, activity=activity)
+<<<<<<< Updated upstream
     if not daily_check.is_running():
         daily_check.start()
     # A mensagem de boas-vindas será impressa quando tudo estiver 100% pronto
     # (veja `wait_until_bot_ready_for_daily_check`).
     
+=======
+>>>>>>> Stashed changes
 
 @bot.event
 async def on_member_join(member):
@@ -87,6 +90,7 @@ async def on_message(message: discord.Message):
     # Process commands if the message is not a DM
     await bot.process_commands(message)
     
+<<<<<<< Updated upstream
 # --- Contador Diário "Lores vs. Isshin" ---
 COUNTER_KEY = "lores_isshin_counter"
 CHANNEL_ID = 1056324441153486968
@@ -184,6 +188,8 @@ async def set_isshin(ctx, days: int):
     except Exception as e:
         logger.exception("Erro ao definir contador via comando set_isshin: %s", e)
         await ctx.send('Ocorreu um erro ao definir o contador. Veja os logs.')
+=======
+>>>>>>> Stashed changes
 
 async def main():
     # Garantir que o banco de dados e tabelas existam antes de iniciar o bot
@@ -191,5 +197,7 @@ async def main():
     async with bot:
         await load_cogs()
         await bot.start(TOKEN)
+        print(f'{bot.user}: Bem vindo, Aristocrata!')
+       
 
 asyncio.run(main())
