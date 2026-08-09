@@ -57,6 +57,7 @@ xingamentos = [
                    'Os homens do mar atacaram de novo',
                    'Por 11 reais...',
                    'Não pergunte ao lores o que ele faria com 11 reais',
+                   'Oi amigo, o que acontece...'
                    
                    ### Desgraça
                    'Toma a kunai pra tu ver',

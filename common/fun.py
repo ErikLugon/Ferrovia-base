@@ -15,10 +15,9 @@ class Fun(commands.Cog):
         response = random.choice(falas.xingamentos)
         await ctx.send(response)
 
-    @commands.command(name='deez', help='nutz')
+    @commands.command(name='Arre', help='nutz')
     async def deez(self, ctx):
-        """Deez Nutz!!"""
-        response = "nuts!"
+        response = "Égua!"
         await ctx.send(response)
 
     @commands.command(name='fazueli', help='Peça para ferrovia fazer o L!')
@@ -36,7 +35,7 @@ class Fun(commands.Cog):
         title = random.choice(falas.poll)
         embed = discord.Embed(title=title, description=question, color=discord.Color.blue())
         poll_message = await ctx.send(embed=embed)
-        await ctx.message.delete()  # Deleta a mensagem do autor que chamou o comando
+        await ctx.message.delete() 
         await poll_message.add_reaction("👍")
         await poll_message.add_reaction("👎")
 
@@ -52,6 +51,21 @@ class Fun(commands.Cog):
             embed = discord.Embed(title="Cabeças ou caldas!!!", description=f"{ctx.author.mention} Girou a moeda, e ela concedeu **Caldas**! <:dododoo:1101257946383523861>" )
             await ctx.send(embed=embed)
         
+    @commands.command(name = 'evilcommandthatkillspeople', help= 'Se mata')
+    async def killyourself(self, ctx):
+        if random.randint(1, 6) == 1:
+            try:
+                await ctx.author.kick(reason="Memento mori né mano")
+                await ctx.send(f"🎰 {ctx.author.mention} sugou o cano e puxou o gatilho. Memento mori né mano")
+            except discord.Forbidden:
+                await ctx.send(f"Você é poderoso demais, chefe.")
+            except discord.HTTPException:
+                await ctx.send("Deu erro, programa essa porra direito")
+        else:
+            await ctx.send(f"Hoje você vive, neguinho.")
+            return False
+        
+
     'Mandar mensagem pra canal'
     @commands.command(name='send_c', hidden=True)
     @commands.has_permissions(administrator=True)
